@@ -1,0 +1,27 @@
+{
+  "name": "grande",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MntRushmore/grande.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MntRushmore/grande/issues"
+  },
+  "homepage": "https://github.com/MntRushmore/grande#readme",
+  "dependencies": {
+    "@slack/bolt": "^4.2.1",
+    "axios": "^1.8.4",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}
