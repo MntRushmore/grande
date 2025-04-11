@@ -9,16 +9,12 @@ const receiver = new ExpressReceiver({
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver,
-  clientOptions: {
-    fetch,
-  },
 });
-
-// Use custom WebClient with fetch for reliability
-const client = new WebClient(process.env.SLACK_BOT_TOKEN, { fetch });
 
 app.command('/grant', async ({ ack, body }) => {
   await ack();
+
+  const client = new WebClient(process.env.SLACK_BOT_TOKEN, { fetch });
 
   await client.views.open({
     trigger_id: body.trigger_id,
