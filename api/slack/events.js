@@ -2,6 +2,8 @@ const { App } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
+require('dotenv').config();
+
 if (process.env.NODE_ENV === 'development') {
   console.log('🔁 Hot reload enabled (watching for file changes)');
 }
