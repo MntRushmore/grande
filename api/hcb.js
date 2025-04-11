@@ -27,12 +27,14 @@ async function sendGrant(organization, amount, note, email, recipient) {
 }
 
 async function getOrgs(email) {
-  console.log(email)
   const user = await prisma.user.findFirst({
     where: {
       email: email
     }
   });
+  // if (!user) {
+    
+  // }
   const res = await fetch("https://hcb.hackclub.com/api/v4/user/organizations", {
     headers: {
       Authorization: `Bearer ${user.access_token}`,
