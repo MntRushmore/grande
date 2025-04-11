@@ -43,4 +43,4 @@ app.command('/grant', async ({ ack, body }) => {
   });
 });
 
-module.exports = receiver.router;
+module.exports = receiver.app;
