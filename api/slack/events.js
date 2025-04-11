@@ -1,9 +1,23 @@
+const { App, ExpressReceiver } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
+const receiver = new ExpressReceiver({
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+});
+
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,
+  receiver,
+  clientOptions: {
+    fetch,
+  },
+});
+
+// Use custom WebClient with fetch for reliability
 const client = new WebClient(process.env.SLACK_BOT_TOKEN, { fetch });
 
-module.exports = async ({ ack, body }) => {
+app.command('/grant', async ({ ack, body }) => {
   await ack();
 
   await client.views.open({
@@ -31,4 +45,6 @@ module.exports = async ({ ack, body }) => {
       ],
     },
   });
-};
+});
+
+module.exports = receiver.app;
