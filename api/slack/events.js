@@ -11,10 +11,8 @@ const app = new App({
   receiver,
 });
 
-app.command('/grant', async ({ ack, body }) => {
+app.command('/grant', async ({ ack, body, client }) => {
   await ack();
-
-  const client = new WebClient(process.env.SLACK_BOT_TOKEN, { fetch });
 
   await client.views.open({
     trigger_id: body.trigger_id,
