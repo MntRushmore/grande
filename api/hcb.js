@@ -12,7 +12,7 @@ async function getCards() {
 
 async function sendGrant(cardId, amount, note) {
   const res = await api.post(`/cards/${cardId}/grants`, {
-    amount: parseFloat(amount) * 100, // converts dollars to cents
+    amount: parseFloat(amount) * 100,
     note,
   });
   return res.data;
