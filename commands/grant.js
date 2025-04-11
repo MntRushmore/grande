@@ -1,4 +1,4 @@
-const { getCards, sendGrant } = require('../api/hcb');
+const { getCards, sendGrant } = require('../hcb');
 
 module.exports = async ({ ack, body, client }) => {
   await ack();

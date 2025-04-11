@@ -1,7 +1,7 @@
 const { App } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const { getOrgs, sendGrant } = require('../hcb');
 require('dotenv').config();
 
 if (process.env.NODE_ENV === 'development') {
@@ -25,7 +25,11 @@ if (process.env.NODE_ENV === 'development') {
 
 app.command('/grant', async ({ ack, body, client }) => {
   await ack();
-
+  const userInfo = await client.users.info({
+    user: body.user_id
+  });
+  const userEmail = userInfo.user.profile.email;
+  const orgs = await getOrgs(userEmail);
   await client.views.open({
     trigger_id: body.trigger_id,
     view: {
@@ -78,18 +82,7 @@ app.command('/grant', async ({ ack, body, client }) => {
             action_id: 'organization',
             placeholder: { type: 'plain_text', text: 'Select your organization' },
             options: [
-              {
-                text: { type: 'plain_text', text: 'Org 1' },
-                value: 'org_1',
-              },
-              {
-                text: { type: 'plain_text', text: 'Org 2' },
-                value: 'org_2',
-              },
-              {
-                text: { type: 'plain_text', text: 'Org 3' },
-                value: 'org_3',
-              },
+              orgs
             ],
           },
           label: { type: 'plain_text', text: 'Organization' },

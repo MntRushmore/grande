@@ -1,22 +1,47 @@
 const axios = require('axios');
-const prisma = require('prisma');
+const { PrismaClient } = require('../generated/prisma/client.js');
+const prisma = new PrismaClient();
 
-const api = axios.create({
-  baseURL: process.env.HCB_API_BASE_URL,
-  headers: { Authorization: `Bearer ${process.env.HCB_API_KEY}` },
-});
-
-async function getCards() {
-  const res = await api.get('/cards');
-  return res.data;
-}
-
-async function sendGrant(cardId, amount, note) {
-  const res = await api.post(`/cards/${cardId}/grants`, {
+async function sendGrant(organization, amount, note, email, recipient) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email
+    }
+  });
+  console.log(user);
+  const api = axios.create({
+    baseURL: process.env.HCB_API_BASE_URL,
+    headers: { Authorization: `Bearer ${user.access_token}` },
+  });
+  const res = await api.post(`/organizations/${organization}/card_grants`, {
+    email: recipient,
     amount: parseFloat(amount) * 100,
-    note,
+    purpose: note,
   });
   return res.data;
 }
 
-module.exports = { getCards, sendGrant };
+async function getOrgs(email) {
+  console.log(email)
+  const users = await prisma.user.findMany({
+  });
+  console.log(users); 
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email
+    }
+  });
+  console.log(user);
+  const api = axios.create({
+    baseURL: process.env.HCB_API_BASE_URL,
+    headers: { Authorization: `Bearer ${user.access_token}` },
+  });
+  const res = await api.get('/organizations');
+  const formattedOrgs = res.data.map(org => ({
+    text: { type: 'plain_text', text: org.name },
+    value: org.slug
+  }));
+  return formattedOrgs;
+}
+
+module.exports = { sendGrant, getOrgs };
