@@ -9,8 +9,6 @@ const app = new App({
   receiver,
 });
 
-app.command('/grant', require('../../../commands/grant'));
-
-receiver.router.post('/api/slack/events', receiver.app);
+app.command('/grant', require('../../commands/grant'));
 
 module.exports = receiver.app;
