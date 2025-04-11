@@ -1,4 +1,5 @@
 const { App, ExpressReceiver } = require('@slack/bolt');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -7,6 +8,9 @@ const receiver = new ExpressReceiver({
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver,
+  clientOptions: {
+    fetch,
+  },
 });
 
 app.command('/grant', require('../../commands/grant'));
