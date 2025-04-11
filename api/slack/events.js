@@ -11,4 +11,5 @@ const app = new App({
 
 app.command('/grant', require('../../commands/grant'));
 
+// Export the receiver app to handle requests from Vercel
 module.exports = receiver.app;
