@@ -3,7 +3,18 @@ const { getCards, sendGrant } = require('../api/hcb');
 module.exports = async ({ ack, body, client }) => {
   await ack();
 
-  const cards = await getCards();
+  let cards;
+  try {
+    cards = await getCards();
+  } catch (error) {
+    console.error('Failed to fetch cards:', error);
+    await client.chat.postEphemeral({
+      channel: body.channel_id,
+      user: body.user.id,
+      text: 'Failed to load cards. Please try again later.',
+    });
+    return;
+  }
 
   await client.views.open({
     trigger_id: body.trigger_id,
