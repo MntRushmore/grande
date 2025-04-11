@@ -1,7 +1,7 @@
 const { App } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const { getOrgs, sendGrant } = require('../hcb');
+const { getOrgs, sendGrant } = require('../hcb.js');
+
 require('dotenv').config();
 
 if (process.env.NODE_ENV === 'development') {
@@ -56,15 +56,15 @@ app.command('/grant', async ({ ack, body, client }) => {
           },
           label: { type: 'plain_text', text: 'Grant Amount ($)' },
         },
-        {
-          type: 'input',
-          block_id: 'name_block',
-          element: {
-            type: 'plain_text_input',
-            action_id: 'name',
-          },
-          label: { type: 'plain_text', text: 'Name' },
-        },
+        // {
+        //   type: 'input',
+        //   block_id: 'name_block',
+        //   element: {
+        //     type: 'plain_text_input',
+        //     action_id: 'name',
+        //   },
+        //   label: { type: 'plain_text', text: 'Name' },
+        // },
         {
           type: 'input',
           block_id: 'email_block',
@@ -81,15 +81,51 @@ app.command('/grant', async ({ ack, body, client }) => {
             type: 'static_select',
             action_id: 'organization',
             placeholder: { type: 'plain_text', text: 'Select your organization' },
-            options: [
+            options: 
               orgs
-            ],
+            ,
           },
           label: { type: 'plain_text', text: 'Organization' },
         },
       ],
     },
   });
+});
+
+app.view('grant_modal', async ({ ack, body, view, client }) => {
+  await ack();
+  
+  try {
+    const values = view.state.values;
+    const amount = values.amount_block.amount.value;
+    const email = values.email_block.email.value;
+    const organization = values.org_block.organization.selected_option.value;
+    
+    const userInfo = await client.users.info({
+      user: body.user.id
+    });
+    const userEmail = userInfo.user.profile.email;
+    console.log("sending grant to", email, "for", amount, "from", organization);
+    await sendGrant(
+      organization, 
+      amount, 
+      `Grant for ${email}`, 
+      userEmail, 
+      email
+    );
+    
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `:white_check_mark: Grant successfully sent to ${email} for $${amount}`
+    });
+    
+  } catch (error) {
+    console.error('Error processing grant submission:', error);
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `:x: Error processing your grant submission: ${error.message}`
+    });
+  }
 });
 
 module.exports = app;

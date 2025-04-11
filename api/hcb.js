@@ -8,36 +8,41 @@ async function sendGrant(organization, amount, note, email, recipient) {
       email: email
     }
   });
-  console.log(user);
-  const api = axios.create({
-    baseURL: process.env.HCB_API_BASE_URL,
-    headers: { Authorization: `Bearer ${user.access_token}` },
+  const res = await fetch(`https://hcb.hackclub.com/api/v4/organizations/${organization}/card_grants`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${user.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: recipient,
+      amount_cents: parseFloat(amount) * 100,
+    }),
   });
-  const res = await api.post(`/organizations/${organization}/card_grants`, {
-    email: recipient,
-    amount: parseFloat(amount) * 100,
-    purpose: note,
-  });
+  if (!res.ok) {
+    throw new Error(`Error sending grant: ${res.statusText}`);
+  }
+
   return res.data;
 }
 
 async function getOrgs(email) {
   console.log(email)
-  const users = await prisma.user.findMany({
-  });
-  console.log(users); 
   const user = await prisma.user.findFirst({
     where: {
       email: email
     }
   });
-  console.log(user);
-  const api = axios.create({
-    baseURL: process.env.HCB_API_BASE_URL,
-    headers: { Authorization: `Bearer ${user.access_token}` },
+  const res = await fetch("https://hcb.hackclub.com/api/v4/user/organizations", {
+    headers: {
+      Authorization: `Bearer ${user.access_token}`,
+    },
   });
-  const res = await api.get('/organizations');
-  const formattedOrgs = res.data.map(org => ({
+  if (!res.ok) {
+    throw new Error(`Error fetching organizations: ${res.statusText}`);
+  }
+  const data = await res.json();
+  const formattedOrgs = data.map(org => ({
     text: { type: 'plain_text', text: org.name },
     value: org.slug
   }));
