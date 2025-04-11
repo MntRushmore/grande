@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@slack/bolt": "^4.2.1",
     "vercel": "^41.6.0"
   }
 }
