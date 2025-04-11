@@ -1,15 +1,25 @@
-const { App, ExpressReceiver } = require('@slack/bolt');
+const { App } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-const receiver = new ExpressReceiver({
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-});
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔁 Hot reload enabled (watching for file changes)');
+}
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  receiver,
+  appToken: process.env.SLACK_APP_TOKEN,
+  socketMode: true,
 });
+
+if (process.env.NODE_ENV === 'development') {
+  const logEvent = async ({ event }) => {
+    console.log('📩 Incoming Slack event:', JSON.stringify(event, null, 2));
+  };
+
+  app.event('message', logEvent);
+  app.event('app_mention', logEvent);
+}
 
 app.command('/grant', async ({ ack, body, client }) => {
   await ack();
@@ -41,4 +51,26 @@ app.command('/grant', async ({ ack, body, client }) => {
   });
 });
 
-module.exports = receiver.app;
+module.exports = app;
+
+(async () => {
+  try {
+    await app.start();
+    console.log('⚡️ Slack HCB Bot is running in Socket Mode');
+  } catch (error) {
+    console.error('Failed to start Slack HCB Bot:', error);
+    process.exit(1);
+  }
+})();
+
+process.on('SIGINT', async () => {
+  console.log('👋 Shutting down Slack HCB Bot (SIGINT)');
+  await app.stop();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('👋 Shutting down Slack HCB Bot (SIGTERM)');
+  await app.stop();
+  process.exit(0);
+});

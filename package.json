@@ -4,5 +4,11 @@
     "@slack/web-api": "^7.9.1",
     "node-fetch": "^3.3.2",
     "vercel": "^41.6.0"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development nodemon api/slack/events.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
