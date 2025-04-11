@@ -45,8 +45,57 @@ app.command('/grant', async ({ ack, body, client }) => {
           element: {
             type: 'plain_text_input',
             action_id: 'amount',
+            // initial_value removed
+            placeholder: {
+              type: 'plain_text',
+              text: 'Enter the grant amount',
+            },
           },
-          label: { type: 'plain_text', text: 'Amount ($)' },
+          label: { type: 'plain_text', text: 'Grant Amount ($)' },
+        },
+        {
+          type: 'input',
+          block_id: 'name_block',
+          element: {
+            type: 'plain_text_input',
+            action_id: 'name',
+            // initial_value removed
+          },
+          label: { type: 'plain_text', text: 'Name' },
+        },
+        {
+          type: 'input',
+          block_id: 'email_block',
+          element: {
+            type: 'plain_text_input',
+            action_id: 'email',
+            // initial_value removed
+          },
+          label: { type: 'plain_text', text: 'Email' },
+        },
+        {
+          type: 'input',
+          block_id: 'org_block',
+          element: {
+            type: 'static_select',
+            action_id: 'organization',
+            placeholder: { type: 'plain_text', text: 'Select your organization' },
+            options: [
+              {
+                text: { type: 'plain_text', text: 'Org 1' },
+                value: 'org_1',
+              },
+              {
+                text: { type: 'plain_text', text: 'Org 2' },
+                value: 'org_2',
+              },
+              {
+                text: { type: 'plain_text', text: 'Org 3' },
+                value: 'org_3',
+              },
+            ],
+          },
+          label: { type: 'plain_text', text: 'Organization' },
         },
       ],
     },
