@@ -1,4 +1,5 @@
 const axios = require('axios');
+const prisma = require('prisma');
 
 const api = axios.create({
   baseURL: process.env.HCB_API_BASE_URL,

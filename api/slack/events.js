@@ -45,7 +45,6 @@ app.command('/grant', async ({ ack, body, client }) => {
           element: {
             type: 'plain_text_input',
             action_id: 'amount',
-            // initial_value removed
             placeholder: {
               type: 'plain_text',
               text: 'Enter the grant amount',
@@ -59,7 +58,6 @@ app.command('/grant', async ({ ack, body, client }) => {
           element: {
             type: 'plain_text_input',
             action_id: 'name',
-            // initial_value removed
           },
           label: { type: 'plain_text', text: 'Name' },
         },
@@ -69,7 +67,6 @@ app.command('/grant', async ({ ack, body, client }) => {
           element: {
             type: 'plain_text_input',
             action_id: 'email',
-            // initial_value removed
           },
           label: { type: 'plain_text', text: 'Email' },
         },
