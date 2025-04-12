@@ -37,7 +37,7 @@ app.command('/grant', async ({ ack, body, client }) => {
         text: "⏰ Just checking in — did you forget to submit your grant?"
       });
     }
-  }, 5 * 60 * 1000); // 5 minutes
+  }, 5 * 60 * 1000);
 
   const userInfo = await client.users.info({
     user: body.user_id
@@ -160,7 +160,7 @@ module.exports = app;
     const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
     await startupClient.chat.postMessage({
       channel: '#rushils-racoons',
-      text: '🟢 HCB Bot is now online',
+      text: 'I am now online and or restarted! :tada:',
     });
 
   } catch (error) {
