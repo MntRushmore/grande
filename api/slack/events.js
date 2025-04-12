@@ -23,8 +23,22 @@ if (process.env.NODE_ENV === 'development') {
   app.event('app_mention', logEvent);
 }
 
+const pendingGrants = {};
+const grantCounts = {};
+
 app.command('/grant', async ({ ack, body, client }) => {
   await ack();
+  pendingGrants[body.user_id] = Date.now();
+
+  setTimeout(async () => {
+    if (pendingGrants[body.user_id]) {
+      await client.chat.postMessage({
+        channel: body.user_id,
+        text: "⏰ Just checking in — did you forget to submit your grant?"
+      });
+    }
+  }, 5 * 60 * 1000); // 5 minutes
+
   const userInfo = await client.users.info({
     user: body.user_id
   });
@@ -56,15 +70,6 @@ app.command('/grant', async ({ ack, body, client }) => {
           },
           label: { type: 'plain_text', text: 'Grant Amount ($)' },
         },
-        // {
-        //   type: 'input',
-        //   block_id: 'name_block',
-        //   element: {
-        //     type: 'plain_text_input',
-        //     action_id: 'name',
-        //   },
-        //   label: { type: 'plain_text', text: 'Name' },
-        // },
         {
           type: 'input',
           block_id: 'email_block',
@@ -94,38 +99,55 @@ app.command('/grant', async ({ ack, body, client }) => {
 
 app.view('grant_modal', async ({ ack, body, view, client }) => {
   await ack();
+  delete pendingGrants[body.user.id];
+
+  const values = view.state.values;
+  const amount = values.amount_block.amount.value;
+  const email = values.email_block.email.value;
+  const organization = values.org_block.organization.selected_option.value;
   
-  try {
-    const values = view.state.values;
-    const amount = values.amount_block.amount.value;
-    const email = values.email_block.email.value;
-    const organization = values.org_block.organization.selected_option.value;
-    
-    const userInfo = await client.users.info({
-      user: body.user.id
-    });
-    const userEmail = userInfo.user.profile.email;
-    console.log("sending grant to", email, "for", amount, "from", organization);
-    await sendGrant(
-      organization, 
-      amount, 
-      `Grant for ${email}`, 
-      userEmail, 
-      email
-    );
-    
-    await client.chat.postMessage({
-      channel: body.user.id,
-      text: `:white_check_mark: Grant successfully sent to ${email} for $${amount}`
-    });
-    
-  } catch (error) {
-    console.error('Error processing grant submission:', error);
-    await client.chat.postMessage({
-      channel: body.user.id,
-      text: `:x: Error processing your grant submission: ${error.message} - DM @Rushmore for help`
-    });
-  }
+  const userInfo = await client.users.info({
+    user: body.user.id
+  });
+  const userEmail = userInfo.user.profile.email;
+  console.log("sending grant to", email, "for", amount, "from", organization);
+  await sendGrant(
+    organization, 
+    amount, 
+    `Grant for ${email}`, 
+    userEmail, 
+    email
+  );
+  
+  await client.chat.postMessage({
+    channel: body.user.id,
+    text: `:white_check_mark: Grant successfully sent to ${email} for $${amount}`
+  });
+
+  const gifs = [
+    'https://media.giphy.com/media/l0MYB8Ory7Hqefo9a/giphy.gif',
+    'https://media.giphy.com/media/xT9IgIc0lryrxvqVGM/giphy.gif',
+    'https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif'
+  ];
+  const gif = gifs[Math.floor(Math.random() * gifs.length)];
+  await client.chat.postMessage({
+    channel: body.user.id,
+    text: `🎉 Here's a celebration gif for your grant:\n${gif}`
+  });
+
+  const userId = body.user.id;
+  grantCounts[userId] = (grantCounts[userId] || 0) + 1;
+
+  const top = Object.entries(grantCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([id, count]) => `<@${id}> — ${count} grants`)
+    .slice(0, 3)
+    .join('\n');
+
+  await client.chat.postMessage({
+    channel: body.user.id,
+    text: `🏆 Leaderboard:\n${top}`
+  });
 });
 
 module.exports = app;
@@ -134,6 +156,13 @@ module.exports = app;
   try {
     await app.start();
     console.log('⚡️ Slack HCB Bot is running in Socket Mode');
+
+    const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
+    await startupClient.chat.postMessage({
+      channel: '#rushils-racoons',
+      text: '🟢 HCB Bot is now online',
+    });
+
   } catch (error) {
     console.error('Failed to start Slack HCB Bot:', error);
     process.exit(1);
