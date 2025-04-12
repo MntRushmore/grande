@@ -72,7 +72,7 @@ app.command('/grant', async ({ ack, body, client }) => {
             type: 'plain_text_input',
             action_id: 'email',
           },
-          label: { type: 'plain_text', text: 'Email' },
+          label: { type: 'plain_text', text: 'Recipients Email' },
         },
         {
           type: 'input',
@@ -123,7 +123,7 @@ app.view('grant_modal', async ({ ack, body, view, client }) => {
     console.error('Error processing grant submission:', error);
     await client.chat.postMessage({
       channel: body.user.id,
-      text: `:x: Error processing your grant submission: ${error.message}`
+      text: `:x: Error processing your grant submission: ${error.message} - DM @Rushmore for help`
     });
   }
 });

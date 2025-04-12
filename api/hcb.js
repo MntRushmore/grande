@@ -52,3 +52,6 @@ async function getOrgs(email) {
 }
 
 module.exports = { sendGrant, getOrgs };
+
+// Made by @Rushmore at @hackclub
+// With help by Mohammed
