@@ -25,37 +25,104 @@ if (process.env.NODE_ENV === 'development') {
 
 const pendingGrants = {};
 const grantCounts = {};
+const grantTemplates = {};
+
+app.event('message', async ({ event, client }) => {
+  if (event.channel === 'rushils-racoons' && event.text && event.text.toLowerCase().includes('shut up') && !event.subtype) {
+    await client.chat.postMessage({
+      channel: event.channel,
+      text: 'no'
+    });
+  }
+  if (event.text && event.text.toLowerCase().includes('granteo') && !event.subtype) {
+    const roasts = [
+      "Oh, you're talking about me? I guess I'm famous now. 😏",
+      "Granteo? More like 'gr-ate-o' because I'm always on top. 😎",
+      "I can't believe you just mentioned me. Do you need some help with that? 😂",
+      "Did you mention Granteo? Well, I guess I'll make your day better. 💁‍♂️",
+      "Granteo? Well, now I gotta make it a party! 🕺💃"
+    ];
+    const roast = roasts[Math.floor(Math.random() * roasts.length)];
+    await client.chat.postMessage({
+      channel: event.channel,
+      text: roast
+    });
+  }
+});
+
+app.command('/grant create_template', async ({ ack, body, client }) => {
+  await ack();
+
+  const { amount, email, organization } = body.text.split(' ');
+
+  grantTemplates[body.user_id] = {
+    amount,
+    email,
+    organization
+  };
+
+  await client.chat.postMessage({
+    channel: body.user_id,
+    text: `:white_check_mark: Template created for ${email} with amount $${amount}.`
+  });
+});
+
+app.command('/grant delete_template', async ({ ack, body, client }) => {
+  await ack();
+
+  delete grantTemplates[body.user_id];
+
+  await client.chat.postMessage({
+    channel: body.user_id,
+    text: `:x: Template deleted successfully.`
+  });
+});
+
+app.command('/grant list_templates', async ({ ack, body, client }) => {
+  await ack();
+
+  const userTemplates = Object.keys(grantTemplates).map(template => {
+    return `Template: ${template} - Amount: ${grantTemplates[template].amount}, Email: ${grantTemplates[template].email}, Organization: ${grantTemplates[template].organization}`;
+  }).join('\n') || "No templates found.";
+
+  await client.chat.postMessage({
+    channel: body.user_id,
+    text: userTemplates
+  });
+});
 
 app.command('/grant', async ({ ack, body, client }) => {
   await ack();
   pendingGrants[body.user_id] = Date.now();
 
-  setTimeout(async () => {
-    if (pendingGrants[body.user_id]) {
-      await client.chat.postMessage({
-        channel: body.user_id,
-        text: "⏰ Just checking in — did you forget to submit your grant?"
-      });
-    }
-  }, 5 * 60 * 1000);
-
-  const userInfo = await client.users.info({
-    user: body.user_id
-  });
-  const userEmail = userInfo.user.profile.email;
-  const orgs = await getOrgs(userEmail);
+  const userTemplates = Object.keys(grantTemplates);
+  
   await client.views.open({
     trigger_id: body.trigger_id,
     view: {
       type: 'modal',
       callback_id: 'grant_modal',
-      title: { type: 'plain_text', text: 'Send Card Grant' },
+      title: { type: 'plain_text', text: 'Send Grant' },
       submit: { type: 'plain_text', text: 'Send' },
       close: { type: 'plain_text', text: 'Cancel' },
       blocks: [
         {
           type: 'section',
-          text: { type: 'mrkdwn', text: '*Fill out the grant details below*' },
+          text: { type: 'mrkdwn', text: 'Choose a template or create a new one:' },
+        },
+        {
+          type: 'input',
+          block_id: 'template_block',
+          element: {
+            type: 'static_select',
+            action_id: 'template',
+            placeholder: { type: 'plain_text', text: 'Select template' },
+            options: userTemplates.map((template) => ({
+              text: { type: 'plain_text', text: template },
+              value: template,
+            })),
+          },
+          label: { type: 'plain_text', text: 'Template' },
         },
         {
           type: 'input',
@@ -99,56 +166,114 @@ app.command('/grant', async ({ ack, body, client }) => {
 
 app.view('grant_modal', async ({ ack, body, view, client }) => {
   await ack();
+  
+  await client.views.open({
+    trigger_id: body.trigger_id,
+    view: {
+      type: 'modal',
+      callback_id: 'confirm_grant_modal',
+      title: { type: 'plain_text', text: 'Confirm Grant' },
+      submit: { type: 'plain_text', text: 'Confirm' },
+      close: { type: 'plain_text', text: 'Cancel' },
+      private_metadata: JSON.stringify(view.state.values),
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `You're about to send a grant for *$${view.state.values.amount_block.amount.value}* to *${view.state.values.email_block.email.value}* from *${view.state.values.org_block.organization.selected_option.text.text}*.`,
+          },
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: 'Are you sure you want to proceed?',
+          },
+        },
+      ],
+    },
+  });
+  return;
+});
+
+app.view('confirm_grant_modal', async ({ ack, body, view, client }) => {
+  await ack();
   delete pendingGrants[body.user.id];
 
-  const values = view.state.values;
+  const values = JSON.parse(view.private_metadata);
   const amount = values.amount_block.amount.value;
   const email = values.email_block.email.value;
   const organization = values.org_block.organization.selected_option.value;
-  
+
   const userInfo = await client.users.info({
     user: body.user.id
   });
   const userEmail = userInfo.user.profile.email;
-  console.log("sending grant to", email, "for", amount, "from", organization);
-  await sendGrant(
-    organization, 
-    amount, 
-    `Grant for ${email}`, 
-    userEmail, 
-    email
-  );
-  
-  await client.chat.postMessage({
-    channel: body.user.id,
-    text: `:white_check_mark: Grant successfully sent to ${email} for $${amount}`
-  });
+  console.log("Confirmed grant to", email, "for", amount, "from", organization);
 
-  const gifs = [
-    'https://media.giphy.com/media/l0MYB8Ory7Hqefo9a/giphy.gif',
-    'https://media.giphy.com/media/xT9IgIc0lryrxvqVGM/giphy.gif',
-    'https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif'
-  ];
-  const gif = gifs[Math.floor(Math.random() * gifs.length)];
-  await client.chat.postMessage({
-    channel: body.user.id,
-    text: `🎉 Here's a celebration gif for your grant:\n${gif}`
-  });
+  try {
+    await sendGrant(
+      organization,
+      amount,
+      `Grant for ${email}`,
+      userEmail,
+      email
+    );
 
-  const userId = body.user.id;
-  grantCounts[userId] = (grantCounts[userId] || 0) + 1;
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `:white_check_mark: Grant successfully sent to ${email} for $${amount}`
+    });
 
-  const top = Object.entries(grantCounts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([id, count]) => `<@${id}> — ${count} grants`)
-    .slice(0, 3)
-    .join('\n');
+    const gifs = [
+      'https://media.giphy.com/media/l0MYB8Ory7Hqefo9a/giphy.gif',
+      'https://media.giphy.com/media/xT9IgIc0lryrxvqVGM/giphy.gif',
+      'https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif'
+    ];
+    const gif = gifs[Math.floor(Math.random() * gifs.length)];
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `🎉 Here's a celebration gif for your grant:\n${gif}`
+    });
+  } catch (error) {
+    console.error('❌ Failed to send grant:', error);
 
-  await client.chat.postMessage({
-    channel: body.user.id,
-    text: `🏆 Leaderboard:\n${top}`
-  });
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `:x: Something went wrong when trying to send the grant. Please try again or ask for help.`
+    });
+
+    await client.chat.postMessage({
+      channel: '#granteo-logs',
+      text: `:rotating_light: *Grant failed*\n• User: <@${body.user.id}>\n• Email: ${email}\n• Amount: $${amount}\n• Org: ${organization}\n• Error: \`${error.message || error}\``
+    });
+  }
 });
+
+const dailyLogClient = new WebClient(process.env.SLACK_BOT_TOKEN);
+function scheduleDailyCheckIn() {
+  const now = new Date();
+  const next9am = new Date(now);
+  next9am.setHours(9, 0, 0, 0);
+  if (now >= next9am) {
+    next9am.setDate(next9am.getDate() + 1);
+  }
+  const timeUntilNext9am = next9am - now;
+  setTimeout(() => {
+    dailyLogClient.chat.postMessage({
+      channel: '#granteo-logs',
+      text: `🕘 Daily check-in: Granteo is still online and functioning at ${new Date().toLocaleString()}`
+    });
+    setInterval(() => {
+      dailyLogClient.chat.postMessage({
+        channel: '#granteo-logs',
+        text: `🕘 Daily check-in: Granteo is still online and functioning at ${new Date().toLocaleString()}`
+      });
+    }, 24 * 60 * 60 * 1000);
+  }, timeUntilNext9am);
+}
+scheduleDailyCheckIn();
 
 module.exports = app;
 
@@ -159,8 +284,13 @@ module.exports = app;
 
     const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
     await startupClient.chat.postMessage({
-      channel: '#rushils-racoons',
+      channel: '#granteo-logs',
       text: 'I am now online and or restarted! :tada:',
+    });
+    
+    await startupClient.chat.postMessage({
+      channel: '#granteo-logs',
+      text: ':white_check_mark: Granteo bot has started and is online.'
     });
 
   } catch (error) {
@@ -179,4 +309,9 @@ process.on('SIGTERM', async () => {
   console.log('👋 Shutting down Slack HCB Bot (SIGTERM)');
   await app.stop();
   process.exit(0);
+});
+process.on('uncaughtException', async (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  await app.stop();
+  process.exit(1);
 });
