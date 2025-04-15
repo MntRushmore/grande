@@ -50,7 +50,7 @@ app.event('message', async ({ event, client }) => {
   }
 });
 
-app.command('/grant create_template', async ({ ack, body, client }) => {
+app.command('/grant_template', async ({ ack, body, client }) => {
   await ack();
 
   const { amount, email, organization } = body.text.split(' ');
@@ -67,7 +67,7 @@ app.command('/grant create_template', async ({ ack, body, client }) => {
   });
 });
 
-app.command('/grant delete_template', async ({ ack, body, client }) => {
+app.command('/grant_template_delete', async ({ ack, body, client }) => {
   await ack();
 
   delete grantTemplates[body.user_id];
@@ -95,6 +95,20 @@ app.command('/grant', async ({ ack, body, client }) => {
   await ack();
   pendingGrants[body.user_id] = Date.now();
 
+  const userInfo = await client.users.info({
+    user: body.user_id
+  });
+  const userEmail = userInfo.user.profile.email;
+  const orgs = await getOrgs(userEmail);
+  
+  if (!orgs || orgs.length === 0) {
+    await client.chat.postMessage({
+      channel: body.user_id,
+      text: "❌ No organizations found for your email. Please make sure you're associated with an organization in Hack Club Bank."
+    });
+    return;
+  }
+
   const userTemplates = Object.keys(grantTemplates);
   
   await client.views.open({
@@ -117,10 +131,17 @@ app.command('/grant', async ({ ack, body, client }) => {
             type: 'static_select',
             action_id: 'template',
             placeholder: { type: 'plain_text', text: 'Select template' },
-            options: userTemplates.map((template) => ({
-              text: { type: 'plain_text', text: template },
-              value: template,
-            })),
+            options: userTemplates.length > 0
+              ? userTemplates.map((template) => ({
+                  text: { type: 'plain_text', text: template },
+                  value: template,
+                }))
+              : [
+                  {
+                    text: { type: 'plain_text', text: 'No templates available' },
+                    value: 'none',
+                  },
+                ],
           },
           label: { type: 'plain_text', text: 'Template' },
         },
