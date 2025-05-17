@@ -99,6 +99,7 @@ app.command('/grant', async ({ ack, body, client }) => {
     user: body.user_id
   });
   const userEmail = userInfo.user.profile.email;
+  console.log("📧 Slack user email used to fetch DB record:", userEmail);
   const orgs = await getOrgs(userEmail);
   
   if (!orgs || orgs.length === 0) {
@@ -231,6 +232,7 @@ app.view('confirm_grant_modal', async ({ ack, body, view, client }) => {
     user: body.user.id
   });
   const userEmail = userInfo.user.profile.email;
+  console.log("📧 Slack user email in confirmation step:", userEmail);
   console.log("Confirmed grant to", email, "for", amount, "from", organization);
 
   try {
