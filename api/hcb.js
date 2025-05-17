@@ -32,9 +32,11 @@ async function getOrgs(email) {
       email: email
     }
   });
-  // if (!user) {
-    
-  // }
+  console.log("Fetched user from DB:", user);
+  if (!user || !user.access_token) {
+    throw new Error('No access token found for the current user.');
+  }
+
   const res = await fetch("https://hcb.hackclub.com/api/v4/user/organizations", {
     headers: {
       Authorization: `Bearer ${user.access_token}`,
@@ -51,7 +53,34 @@ async function getOrgs(email) {
   return formattedOrgs;
 }
 
-module.exports = { sendGrant, getOrgs };
+async function getOrgInfo(email, orgSlug) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email
+    }
+  });
+
+  const res = await fetch(`https://hcb.hackclub.com/api/v4/organizations/${orgSlug}`, {
+    headers: {
+      Authorization: `Bearer ${user.access_token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error fetching organization info: ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  return {
+    name: data.name,
+    slug: data.slug,
+    balance: `$${(data.balance_cents / 100).toFixed(2)}`,
+    address: data.address,
+    active_cardholders: data.users?.length || 0
+  };
+}
+
+module.exports = { sendGrant, getOrgs, getOrgInfo };
 
 // Made by @Rushmore at @hackclub
 // With help by Mohammed
