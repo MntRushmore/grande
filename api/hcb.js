@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function sendGrant(organization, amount, note, email, recipient) {
   const user = await prisma.user.findFirst({
     where: {
-      email: email
+      email: email.toLowerCase()
     }
   });
   const res = await fetch(`https://hcb.hackclub.com/api/v4/organizations/${organization}/card_grants`, {
@@ -29,7 +29,7 @@ async function sendGrant(organization, amount, note, email, recipient) {
 async function getOrgs(email) {
   const user = await prisma.user.findFirst({
     where: {
-      email: email
+      email: email.toLowerCase()
     }
   });
   console.log("Fetched user from DB:", user);
@@ -56,7 +56,7 @@ async function getOrgs(email) {
 async function getOrgInfo(email, orgSlug) {
   const user = await prisma.user.findFirst({
     where: {
-      email: email
+      email: email.toLowerCase()
     }
   });
 
