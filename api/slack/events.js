@@ -2,6 +2,9 @@ const { App } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
 const { getOrgs, sendGrant } = require('../hcb.js');
 
+const transactionsCommand = require('../../commands/transactions');
+const orgInfoCommand = require('../../commands/orginfo');
+
 require('dotenv').config();
 
 if (process.env.NODE_ENV === 'development') {
@@ -338,3 +341,5 @@ process.on('uncaughtException', async (error) => {
   await app.stop();
   process.exit(1);
 });
+app.command('/transactions', transactionsCommand);
+app.command('/orginfo', orgInfoCommand);
