@@ -41,21 +41,8 @@ app.event('message', async ({ event, client }) => {
       text: 'no'
     });
   }
-  if (event.text && event.text.toLowerCase().includes('granteo') && !event.subtype) {
-    const roasts = [
-      "Oh, you're talking about me? I guess I'm famous now. 😏",
-      "Granteo? More like 'gr-ate-o' because I'm always on top. 😎",
-      "I can't believe you just mentioned me. Do you need some help with that? 😂",
-      "Did you mention Granteo? Well, I guess I'll make your day better. 💁‍♂️",
-      "Granteo? Well, now I gotta make it a party! 🕺💃"
-    ];
-    const roast = roasts[Math.floor(Math.random() * roasts.length)];
-    await client.chat.postMessage({
-      channel: event.channel,
-      text: roast
-    });
-  }
 });
+
 
 app.command('/grant_template', async ({ ack, body, client }) => {
   await ack();
@@ -351,3 +338,18 @@ app.command('/bank_url', bankUrlCommand);
 
 // Register the /login command
 registerLoginCommand(app);
+
+// Roast users on any mention of "granteo" in a message
+app.message(/granteo/i, async ({ message, say }) => {
+  if (message.channel !== 'C0848BEH5A4') return;
+  const roasts = [
+    "Oh, you're talking about me? I guess I'm famous now. 😏",
+    "Granteo? More like 'gr-ate-o' because I'm always on top. 😎",
+    "I can't believe you just mentioned me. Do you need some help with that? 😂",
+    "Did you mention Granteo? Well, I guess I'll make your day better. 💁‍♂️",
+    "Granteo? Well, now I gotta make it a party! 🕺💃"
+  ];
+  const uniqueRoasts = [...new Set(roasts)];
+  const roast = uniqueRoasts[Math.floor(Math.random() * uniqueRoasts.length)];
+  await say(`<@${message.user}> ${roast}`);
+});
