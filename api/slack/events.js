@@ -299,7 +299,6 @@ module.exports = app;
 
 (async () => {
   try {
-    receiver.router.post('/slack/events', app.requestListener());
     await app.start(process.env.PORT || 3030);
     console.log('⚡️ Slack HCB Bot is running on port', process.env.PORT || 3030);
     if (process.env.NODE_ENV === 'development') {
