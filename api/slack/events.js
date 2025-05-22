@@ -17,8 +17,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  appToken: process.env.SLACK_APP_TOKEN,
-  socketMode: true,
+  signingSecret: process.env.SLACK_SIGNING_SECRET
 });
 
 if (process.env.NODE_ENV === 'development') {
@@ -296,8 +295,8 @@ module.exports = app;
 
 (async () => {
   try {
-    await app.start();
-    console.log('⚡️ Slack HCB Bot is running in Socket Mode');
+    await app.start(process.env.PORT || 3000);
+    console.log('⚡️ Slack HCB Bot is running on port', process.env.PORT || 3000);
     if (process.env.NODE_ENV === 'development') {
       const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
       await startupClient.chat.postMessage({
