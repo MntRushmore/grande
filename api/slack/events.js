@@ -1,4 +1,4 @@
-const { App } = require('@slack/bolt');
+const { App, ExpressReceiver } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
 const { getOrgs, sendGrant } = require('../hcb.js');
 
@@ -10,6 +10,10 @@ const registerLoginCommand = require('../../commands/login');
 
 require('dotenv').config();
 
+const receiver = new ExpressReceiver({
+  signingSecret: process.env.SLACK_SIGNING_SECRET
+});
+
 if (process.env.NODE_ENV === 'development') {
   console.log('🔁 Hot reload enabled (watching for file changes)');
   console.log('code edited');
@@ -17,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET
+  receiver
 });
 
 if (process.env.NODE_ENV === 'development') {
@@ -295,7 +299,7 @@ module.exports = app;
 
 (async () => {
   try {
-    app.receiver.router.post('/slack/events', app.requestListener());
+    receiver.router.post('/slack/events', app.requestListener());
     await app.start(process.env.PORT || 3030);
     console.log('⚡️ Slack HCB Bot is running on port', process.env.PORT || 3030);
     if (process.env.NODE_ENV === 'development') {
