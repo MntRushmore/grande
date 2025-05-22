@@ -3,7 +3,7 @@ const { findOrCreateUser } = require('../api/hcb');
 module.exports = function registerLoginCommand(app) {
   app.command('/login', async ({ command, ack, client }) => {
     // Check if user is already authenticated
-    // Fetch Slack profile to get email
+  
     const slackRes = await client.users.info({ user: command.user_id });
     const email = slackRes.user.profile.email;
     const user = await findOrCreateUser(email);
@@ -31,7 +31,7 @@ module.exports = function registerLoginCommand(app) {
               type: 'button',
               text: {
                 type: 'plain_text',
-                text: 'Login to Hack•Club Airtable'
+                text: 'Login to HCB x Airtable'
               },
               url: 'https://hcb-airtable.hackclub.dev/login',
               action_id: 'login_button'
