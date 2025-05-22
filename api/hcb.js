@@ -22,7 +22,7 @@ async function sendGrant(organization, amount, note, email, recipient) {
       Authorization: `Bearer ${user.access_token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
+    body: JSON.stringify({ // push
       email: recipient,
       amount_cents: parseFloat(amount) * 100,
       note: note || ''
