@@ -6,6 +6,7 @@ const transactionsCommand = require('../../commands/transactions');
 const orgInfoCommand = require('../../commands/orginfo');
 const bankUrlCommand = require('../../commands/bank_url');
 const grantsForCommand = require('../../commands/grants_for');
+const registerLoginCommand = require('../../commands/login');
 
 require('dotenv').config();
 
@@ -347,3 +348,6 @@ app.command('/transactions', transactionsCommand);
 app.command('/orginfo', orgInfoCommand);
 app.command('/bank_url', bankUrlCommand);
 // app.command('/grants_for', grantsForCommand);
+
+// Register the /login command
+registerLoginCommand(app);

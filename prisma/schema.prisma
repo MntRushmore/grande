@@ -68,3 +68,4 @@ model Automation {
   updatedAt     DateTime @default(now()) @updatedAt
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
+

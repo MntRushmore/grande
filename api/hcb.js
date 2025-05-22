@@ -1,13 +1,21 @@
-const axios = require('axios');
 const { PrismaClient } = require('../generated/prisma/client.js');
 const prisma = new PrismaClient();
 
-async function sendGrant(organization, amount, note, email, recipient) {
-  const user = await prisma.user.findFirst({
-    where: {
-      email: email.toLowerCase()
-    }
+// Ensure a user record exists (create if missing)
+async function findOrCreateUser(email) {
+  const normalizedEmail = email.toLowerCase();
+  return await prisma.user.upsert({
+    where: { email: normalizedEmail },
+    update: {},
+    create: { email: normalizedEmail }
   });
+}
+
+async function sendGrant(organization, amount, note, email, recipient) {
+  const user = await findOrCreateUser(email);
+  if (!user.access_token) {
+    throw new Error('Please authenticate first by running /login');
+  }
   const res = await fetch(`https://hcb.hackclub.com/api/v4/organizations/${organization}/card_grants`, {
     method: 'POST',
     headers: {
@@ -17,6 +25,7 @@ async function sendGrant(organization, amount, note, email, recipient) {
     body: JSON.stringify({
       email: recipient,
       amount_cents: parseFloat(amount) * 100,
+      note: note || ''
     }),
   });
   if (!res.ok) {
@@ -27,15 +36,11 @@ async function sendGrant(organization, amount, note, email, recipient) {
 }
 
 async function getOrgs(email) {
-  const user = await prisma.user.findFirst({
-    where: {
-      email: email.toLowerCase()
-    }
-  });
-  console.log("Fetched user from DB:", user);
-  if (!user || !user.access_token) {
-    throw new Error('No access token found for the current user.');
+  const user = await findOrCreateUser(email);
+  if (!user.access_token) {
+    throw new Error('Please authenticate first by running /login');
   }
+  console.log("Fetched user from DB:", user);
 
   const res = await fetch("https://hcb.hackclub.com/api/v4/user/organizations", {
     headers: {
@@ -54,11 +59,10 @@ async function getOrgs(email) {
 }
 
 async function getOrgInfo(email, orgSlug) {
-  const user = await prisma.user.findFirst({
-    where: {
-      email: email.toLowerCase()
-    }
-  });
+  const user = await findOrCreateUser(email);
+  if (!user.access_token) {
+    throw new Error('Please authenticate first by running /login');
+  }
 
   const res = await fetch(`https://hcb.hackclub.com/api/v4/organizations/${orgSlug}`, {
     headers: {
@@ -80,7 +84,7 @@ async function getOrgInfo(email, orgSlug) {
   };
 }
 
-module.exports = { sendGrant, getOrgs, getOrgInfo };
+module.exports = { sendGrant, getOrgs, getOrgInfo, findOrCreateUser };
 
 // Made by @Rushmore at @hackclub
 // With help by Mohammed

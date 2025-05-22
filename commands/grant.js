@@ -1,7 +1,18 @@
-const { getCards, sendGrant } = require('../hcb');
+const { getCards, sendGrant, findOrCreateUser } = require('../hcb');
 
 module.exports = async ({ ack, body, client }) => {
   await ack();
+
+  // Check that the user is authenticated
+  const user = await findOrCreateUser(body.user.id);
+  if (!user.access_token) {
+    await client.chat.postEphemeral({
+      channel: body.channel_id,
+      user: body.user.id,
+      text: 'Please authenticate by running /login before using this command.',
+    });
+    return;
+  }
 
   let cards;
   try {
