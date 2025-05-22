@@ -1,3 +1,4 @@
+// This command fetches recent grants for a user or organization from the HCB API. - Doesnt Work Yet.
 /*
 const fetch = require('node-fetch');
 const { prisma } = require('../api/db');
