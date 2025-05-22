@@ -12,6 +12,7 @@ require('dotenv').config();
 
 if (process.env.NODE_ENV === 'development') {
   console.log('🔁 Hot reload enabled (watching for file changes)');
+  console.log('code edited');
 }
 
 const app = new App({
@@ -310,18 +311,17 @@ module.exports = app;
   try {
     await app.start();
     console.log('⚡️ Slack HCB Bot is running in Socket Mode');
-
-    const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
-    await startupClient.chat.postMessage({
-      channel: '#granteo-logs',
-      text: 'I am now online and or restarted! :tada:',
-    });
-    
-    await startupClient.chat.postMessage({
-      channel: '#granteo-logs',
-      text: ':white_check_mark: Granteo bot has started and is online.'
-    });
-
+    if (process.env.NODE_ENV === 'development') {
+      const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
+      await startupClient.chat.postMessage({
+        channel: '#granteo-logs',
+        text: 'I am now online and or restarted! :tada:',
+      });
+      await startupClient.chat.postMessage({
+        channel: '#granteo-logs',
+        text: ':white_check_mark: Granteo bot has started and is online.',
+      });
+    }
   } catch (error) {
     console.error('Failed to start Slack HCB Bot:', error);
     process.exit(1);
