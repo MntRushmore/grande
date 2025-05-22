@@ -1,4 +1,4 @@
-const { App, ExpressReceiver } = require('@slack/bolt');
+const { App } = require('@slack/bolt');
 const { WebClient } = require('@slack/web-api');
 const { getOrgs, sendGrant } = require('../hcb.js');
 
@@ -10,9 +10,6 @@ const registerLoginCommand = require('../../commands/login');
 
 require('dotenv').config();
 
-const receiver = new ExpressReceiver({
-  signingSecret: process.env.SLACK_SIGNING_SECRET
-});
 
 if (process.env.NODE_ENV === 'development') {
   console.log('🔁 Hot reload enabled (watching for file changes)');
@@ -21,7 +18,9 @@ if (process.env.NODE_ENV === 'development') {
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  receiver
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+  appToken: process.env.SLACK_APP_TOKEN,
+  socketMode: true
 });
 
 if (process.env.NODE_ENV === 'development') {
