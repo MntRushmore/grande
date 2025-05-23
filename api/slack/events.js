@@ -246,10 +246,14 @@ app.view('confirm_grant_modal', async ({ ack, body, view, client }) => {
     });
 
     // Log grant info to #granteo-logs before celebration gif
-    await client.chat.postMessage({
-      channel: '#granteo-logs',
-      text: `:money_with_wings: *Grant Sent*\n• To: ${email}\n• Amount: $${amount}\n• Org: ${organization}\n• Sent by: <@${body.user.id}>`
-    });
+    try {
+      await client.chat.postMessage({
+        channel: 'C0848BEH5A4',
+        text: `:money_with_wings: *Grant Sent*\n• To: ${email}\n• Amount: $${amount}\n• Org: ${organization}\n• Sent by: <@${body.user.id}>`
+      });
+    } catch (err) {
+      console.error('❌ Logging grant failed:', err);
+    }
 
     const gifs = [
       'https://media.giphy.com/media/l0MYB8Ory7Hqefo9a/giphy.gif',
@@ -270,7 +274,7 @@ app.view('confirm_grant_modal', async ({ ack, body, view, client }) => {
     });
 
     await client.chat.postMessage({
-      channel: '#granteo-logs',
+      channel: 'C0848BEH5A4',
       text: `:rotating_light: *Grant failed*\n• User: <@${body.user.id}>\n• Email: ${email}\n• Amount: $${amount}\n• Org: ${organization}\n• Error: \`${error.message || error}\``
     });
   }
@@ -287,12 +291,12 @@ function scheduleDailyCheckIn() {
   const timeUntilNext9am = next9am - now;
   setTimeout(() => {
     dailyLogClient.chat.postMessage({
-      channel: '#granteo-logs',
+      channel: 'C0848BEH5A4',
       text: `🕘 Daily check-in: Granteo is still online and functioning at ${new Date().toLocaleString()}`
     });
     setInterval(() => {
       dailyLogClient.chat.postMessage({
-        channel: '#granteo-logs',
+        channel: 'C0848BEH5A4',
         text: `🕘 Daily check-in: Granteo is still online and functioning at ${new Date().toLocaleString()}`
       });
     }, 24 * 60 * 60 * 1000);
@@ -309,11 +313,11 @@ module.exports = app;
     if (process.env.NODE_ENV === 'development') {
       const startupClient = new WebClient(process.env.SLACK_BOT_TOKEN);
       await startupClient.chat.postMessage({
-        channel: '#granteo-logs',
+        channel: 'C0848BEH5A4',
         text: 'I am now online and or restarted! :tada:',
       });
       await startupClient.chat.postMessage({
-        channel: '#granteo-logs',
+        channel: 'C0848BEH5A4',
         text: ':white_check_mark: Granteo bot has started and is online.',
       });
     }
