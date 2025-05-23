@@ -77,9 +77,10 @@ app.command('/grant_template_delete', async ({ ack, body, client }) => {
 app.command('/grant list_templates', async ({ ack, body, client }) => {
   await ack();
 
-  const userTemplates = Object.keys(grantTemplates).map(template => {
-    return `Template: ${template} - Amount: ${grantTemplates[template].amount}, Email: ${grantTemplates[template].email}, Organization: ${grantTemplates[template].organization}`;
-  }).join('\n') || "No templates found.";
+  const template = grantTemplates[body.user_id];
+  const userTemplates = template
+    ? `Template: ${body.user_id} - Amount: ${template.amount}, Email: ${template.email}, Organization: ${template.organization}`
+    : "No templates found.";
 
   await client.chat.postMessage({
     channel: body.user_id,
