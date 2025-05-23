@@ -107,7 +107,12 @@ app.command('/grant', async ({ ack, body, client }) => {
     return;
   }
 
-  const userTemplates = Object.keys(grantTemplates);
+  const userTemplate = grantTemplates[body.user_id];
+  const userTemplates = userTemplate
+    ? [
+        `Amount: ${userTemplate.amount}, Email: ${userTemplate.email}, Organization: ${userTemplate.organization}`
+      ]
+    : [];
   
   await client.views.open({
     trigger_id: body.trigger_id,
@@ -130,10 +135,12 @@ app.command('/grant', async ({ ack, body, client }) => {
             action_id: 'template',
             placeholder: { type: 'plain_text', text: 'Select template' },
             options: userTemplates.length > 0
-              ? userTemplates.map((template) => ({
-                  text: { type: 'plain_text', text: template },
-                  value: template,
-                }))
+              ? [
+                  {
+                    text: { type: 'plain_text', text: userTemplates[0] },
+                    value: userTemplates[0],
+                  },
+                ]
               : [
                   {
                     text: { type: 'plain_text', text: 'No templates available' },
@@ -186,8 +193,8 @@ app.command('/grant', async ({ ack, body, client }) => {
 app.view('grant_modal', async ({ ack, body, view, client }) => {
   await ack();
   
-  await client.views.update({
-    view_id: body.view.id,
+  await client.views.push({
+    trigger_id: body.trigger_id,
     view: {
       type: 'modal',
       callback_id: 'confirm_grant_modal',
