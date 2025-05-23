@@ -245,6 +245,12 @@ app.view('confirm_grant_modal', async ({ ack, body, view, client }) => {
       text: `:white_check_mark: Grant successfully sent to ${email} for $${amount}`
     });
 
+    // Log grant info to #granteo-logs before celebration gif
+    await client.chat.postMessage({
+      channel: '#granteo-logs',
+      text: `:money_with_wings: *Grant Sent*\n• To: ${email}\n• Amount: $${amount}\n• Org: ${organization}\n• Sent by: <@${body.user.id}>`
+    });
+
     const gifs = [
       'https://media.giphy.com/media/l0MYB8Ory7Hqefo9a/giphy.gif',
       'https://media.giphy.com/media/xT9IgIc0lryrxvqVGM/giphy.gif',
