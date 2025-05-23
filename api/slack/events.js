@@ -193,8 +193,8 @@ app.command('/grant', async ({ ack, body, client }) => {
 app.view('grant_modal', async ({ ack, body, view, client }) => {
   await ack();
   
-  await client.views.push({
-    trigger_id: body.trigger_id,
+  await client.views.update({
+    view_id: body.view.id,
     view: {
       type: 'modal',
       callback_id: 'confirm_grant_modal',
