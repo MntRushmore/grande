@@ -185,7 +185,7 @@ app.command('/grant', async ({ ack, body, client }) => {
 app.view('grant_modal', async ({ ack, body, view, client }) => {
   await ack();
   
-  await client.views.open({
+  await client.views.push({
     trigger_id: body.trigger_id,
     view: {
       type: 'modal',
@@ -210,7 +210,7 @@ app.view('grant_modal', async ({ ack, body, view, client }) => {
           },
         },
       ],
-    },
+    }
   });
   return;
 });
