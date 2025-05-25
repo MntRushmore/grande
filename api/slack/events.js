@@ -1,14 +1,24 @@
-const { App } = require('@slack/bolt');
+const { App, SocketModeReceiver } = require('@slack/bolt');
+const { Logger } = require('@slack/logger');
 const { WebClient } = require('@slack/web-api');
 const { getOrgs, sendGrant } = require('../hcb.js');
 
 const transactionsCommand = require('../../commands/transactions');
 const orgInfoCommand = require('../../commands/orginfo');
 const bankUrlCommand = require('../../commands/bank_url');
-const grantsForCommand = require('../../commands/grants_for');
+const grantsForCommand = require('../../commands/grants_for.js/index.js');
 const registerLoginCommand = require('../../commands/login');
 
 require('dotenv').config();
+
+// Configure a Socket Mode receiver with extended ping/pong timeouts
+const receiver = new SocketModeReceiver({
+  appToken: process.env.SLACK_APP_TOKEN,
+  pingInterval: 15000,
+  pongTimeout: 10000
+});
+// Silence non-error logs
+const customLogger = new Logger({ level: 'error' });
 
 
 if (process.env.NODE_ENV === 'development') {
@@ -19,8 +29,8 @@ if (process.env.NODE_ENV === 'development') {
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-  appToken: process.env.SLACK_APP_TOKEN,
-  socketMode: true
+  receiver,
+  logger: customLogger
 });
 
 if (process.env.NODE_ENV === 'development') {
