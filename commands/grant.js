@@ -1,4 +1,4 @@
-const { getCards, sendGrant, findOrCreateUser } = require('../hcb');
+const { getCards, sendGrant, findOrCreateUser } = require('../api/hcb.js');
 
 module.exports = async ({ ack, body, client }) => {
   await ack();
