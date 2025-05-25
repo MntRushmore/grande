@@ -6,7 +6,8 @@ const { getOrgs, sendGrant } = require('../hcb.js');
 const transactionsCommand = require('../../commands/transactions');
 const orgInfoCommand = require('../../commands/orginfo');
 const bankUrlCommand = require('../../commands/bank_url');
-const grantsForCommand = require('../../commands/grants_for.js/index.js');
+const grantsForCommand = require('../../commands/grants_for.js');
+const grantCommand = require('../../commands/grant.js');
 const registerLoginCommand = require('../../commands/login');
 
 require('dotenv').config();
@@ -358,7 +359,8 @@ process.on('uncaughtException', async (error) => {
 app.command('/transactions', transactionsCommand);
 app.command('/orginfo', orgInfoCommand);
 app.command('/bank_url', bankUrlCommand);
-// app.command('/grants_for', grantsForCommand);
+app.command('/grants_for', grantsForCommand);
+app.command('/grant', grantCommand);
 
 // Register the /login command
 registerLoginCommand(app);
