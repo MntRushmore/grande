@@ -191,10 +191,8 @@ app.command('/grant', async ({ ack, body, client }) => {
 });
 
 app.view('grant_modal', async ({ ack, body, view, client }) => {
-  await ack();
-  
-  await client.views.update({
-    view_id: body.view.id,
+  await ack({
+    response_action: 'update',
     view: {
       type: 'modal',
       callback_id: 'confirm_grant_modal',
@@ -207,20 +205,16 @@ app.view('grant_modal', async ({ ack, body, view, client }) => {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `You're about to send a grant for *$${view.state.values.amount_block.amount.value}* to *${view.state.values.email_block.email.value}* from *${view.state.values.org_block.organization.selected_option.text.text}*.`,
-          },
+            text: `You're about to send *$${view.state.values.amount_block.amount.value}* to *${view.state.values.email_block.email.value}* from *${view.state.values.org_block.organization.selected_option.text.text}*.`
+          }
         },
         {
           type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: 'Are you sure you want to proceed?',
-          },
-        },
-      ],
+          text: { type: 'mrkdwn', text: 'Are you sure you want to proceed?' }
+        }
+      ]
     }
   });
-  return;
 });
 
 app.view('confirm_grant_modal', async ({ ack, body, view, client }) => {
@@ -358,18 +352,3 @@ app.command('/bank_url', bankUrlCommand);
 
 // Register the /login command
 registerLoginCommand(app);
-
-// Roast users on any mention of "granteo" in a message
-app.message(/granteo/i, async ({ message, say }) => {
-  if (message.channel !== 'C0848BEH5A4') return;
-  const roasts = [
-    "Oh, you're talking about me? I guess I'm famous now. 😏",
-    "Granteo? More like 'gr-ate-o' because I'm always on top. 😎",
-    "I can't believe you just mentioned me. Do you need some help with that? 😂",
-    "Did you mention Granteo? Well, I guess I'll make your day better. 💁‍♂️",
-    "Granteo? Well, now I gotta make it a party! 🕺💃"
-  ];
-  const uniqueRoasts = [...new Set(roasts)];
-  const roast = uniqueRoasts[Math.floor(Math.random() * uniqueRoasts.length)];
-  await say(`<@${message.user}> ${roast}`);
-});

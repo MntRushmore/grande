@@ -6,11 +6,11 @@ module.exports = async ({ ack, body, client }) => {
   console.log("👉 /grant command invoked, trigger_id:", body.trigger_id);
 
   // Check that the user is authenticated
-  const user = await findOrCreateUser(body.user.id);
+  const user = await findOrCreateUser(body.user_id);
   if (!user.access_token) {
     await client.chat.postEphemeral({
       channel: body.channel_id,
-      user: body.user.id,
+      user: body.user_id,
       text: 'Please authenticate by running /login before using this command.',
     });
     return;
@@ -23,7 +23,7 @@ module.exports = async ({ ack, body, client }) => {
     console.error('Failed to fetch cards:', error);
     await client.chat.postEphemeral({
       channel: body.channel_id,
-      user: body.user.id,
+      user: body.user_id,
       text: 'Failed to load cards. Please try again later.',
     });
     return;
