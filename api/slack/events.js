@@ -1,5 +1,7 @@
 const { App, SocketModeReceiver } = require('@slack/bolt');
-const { Logger } = require('@slack/logger');
+const { ConsoleLogger } = require('@slack/logger');
+const customLogger = new ConsoleLogger();
+customLogger.setLevel('error');
 const { WebClient } = require('@slack/web-api');
 const { getOrgs, sendGrant } = require('../hcb.js');
 
@@ -15,11 +17,9 @@ require('dotenv').config();
 // Configure a Socket Mode receiver with extended ping/pong timeouts
 const receiver = new SocketModeReceiver({
   appToken: process.env.SLACK_APP_TOKEN,
-  pingInterval: 15000,
-  pongTimeout: 10000
+  pingInterval: 30000,
+  pongTimeout: 20000
 });
-// Silence non-error logs
-const customLogger = new Logger({ level: 'error' });
 
 
 if (process.env.NODE_ENV === 'development') {
